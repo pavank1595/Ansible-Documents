@@ -1,0 +1,54 @@
+- name: Install Tomcat
+  hosts: all
+  become: yes
+
+  tasks:
+
+    - name: Download Tomcat
+      ansible.builtin.get_url:
+        url: "https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.28/bin/apache-tomcat-10.1.28.tar.gz"
+        dest: "/home/{{ansible_user}}/apache-tomcat-10.1.28.tar.gz"
+
+    - name: Extract Tomcat
+      unarchive:
+        src: "/home/{{ansible_user}}/apache-tomcat-10.1.28.tar.gz"
+        dest: "/home/{{ansible_user}}"
+        remote_src: yes
+
+    - name: Change ownership of apache-tomcat directory
+      file:
+        path: "/home/{{ansible_user}}/apache-tomcat-10.1.28"
+        owner: "{{ansible_user}}"
+        group: "{{ansible_user}}"
+        recurse: yes
+
+    - name: Set permissions to 777
+      file:
+        path: /home/{{ansible_user}}/apache-tomcat-10.1.28
+        mode: '0777'
+        recurse: yes
+
+    - name: Insert roles into tomcat-users.xml
+      ansible.builtin.lineinfile:
+        path: /home/{{ansible_user}}/apache-tomcat-10.1.28/conf/tomcat-users.xml
+        insertbefore: "</tomcat-users>"  # Insert before the closing </tomcat-users> tag
+        line: |
+          <role rolename="manager-gui"/>
+          <role rolename="admin-gui"/>
+          <role rolename="manager-script"/>
+        state: present
+
+    - name: Insert users into tomcat-users.xml
+      ansible.builtin.lineinfile:
+        path: /home/{{ansible_user}}/apache-tomcat-10.1.28/conf/tomcat-users.xml
+        insertbefore: "</tomcat-users>"  # Insert before the closing </tomcat-users> tag
+        line: |
+          <user username="tomcat" password="tomcat" roles="manager-gui"/>
+          <user username="admin" password="admin" roles="manager-gui, admin-gui, manager-script"/>
+        state: present
+
+    - name: Replace Valve allow attribute in context.xml
+      ansible.builtin.replace:
+        path: /home/{{ansible_user}}/apache-tomcat-10.1.28/webapps/manager/META-INF/context.xml
+        regexp: '<Valve\s+className="org.apache.catalina.valves.RemoteAddrValve"\s+allow="[^"]*"'
+        replace: '<Valve className="org.apache.catalina.valves.RemoteAddrValve" allow=".*"'

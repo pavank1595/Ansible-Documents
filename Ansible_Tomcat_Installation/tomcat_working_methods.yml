@@ -1,0 +1,11 @@
+  - name: Replace Valve allow attribute in context.xml
+    ansible.builtin.replace:
+      path: /home/{{ansible_user}}/apache-tomcat-10.1.28/webapps/manager/META-INF/context.xml
+      regexp: '<Valve\s+className="org.apache.catalina.valves.RemoteAddrValve"\s+allow="[^"]*"'
+      replace: '<Valve className="org.apache.catalina.valves.RemoteAddrValve" allow=".*"'
+
+  - name: Configure environment variables
+    lineinfile:
+      path: /etc/profile
+      line: "export CATALINA_HOME=/home/{{ansible_user}}/apache-tomcat-10.1.28"
+      regexp: '^export CATALINA_HOME='
