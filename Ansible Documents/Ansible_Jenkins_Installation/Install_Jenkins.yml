@@ -1,0 +1,41 @@
+---
+- name: Install Java 17, Git, and Jenkins
+  hosts: jenkins  # Replace with your target hosts or group
+  become: yes  # Apply become at the playbook level
+
+  tasks:
+
+    - name: Run apt update
+      apt:
+        update_cache: yes
+        
+    - name: Install OpenJDK 17
+      apt:
+        name: openjdk-17-jdk
+        state: present
+
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+
+    - name: Add Jenkins Repository Key
+      apt_key:
+        url: https://pkg.jenkins.io/debian/jenkins.io.key
+        state: present
+
+    - name: Add Jenkins Repository
+      apt_repository:
+        repo: deb https://pkg.jenkins.io/debian-stable binary/
+        state: present
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    - name: Start Jenkins service
+      service:
+        name: jenkins
+        state: started
+        enabled: yes

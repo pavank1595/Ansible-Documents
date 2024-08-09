@@ -1,0 +1,12 @@
+sudo apt update
+
+sudo apt install ansible -y
+
+ansible --version
+
+mkdir ansible_practice
+
+vi inventory
+
+vi ansible.cfg
+
